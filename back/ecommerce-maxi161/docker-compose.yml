@@ -7,7 +7,7 @@ services:
       - "5432:5432"
 
   app:
-    build: .
+    image: maxischnee/project-m4:latest
     depends_on:
       - db
     env_file:
