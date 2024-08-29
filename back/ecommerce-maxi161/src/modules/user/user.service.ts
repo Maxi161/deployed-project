@@ -30,7 +30,7 @@ export class UserService {
       const { password, ...userWithoutPassword } = user;
       return { userWithoutPassword, orders };
     }
-    return new HttpException({ status: 404, error: 'User not found' }, 404);
+    return new HttpException({ status: 404, error: 'User not found.' }, 404);
   }
 
   async createUser(userData: CreateUserDto) {
