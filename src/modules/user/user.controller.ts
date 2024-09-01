@@ -46,7 +46,8 @@ export class UserController {
         Number(page),
         Number(limit),
       );
-      return usersWithoutPassword;
+      // return usersWithoutPassword;
+      return "Que pasa manca \n pone /api en la url";
     } catch (error) {
       throw new HttpException(error, 500);
     }
