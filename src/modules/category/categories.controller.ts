@@ -14,6 +14,6 @@ export class CategoriesController {
 
   @Get(':id')
   async prueba() {
-    return `Que pasa manca \n cambia "categories" por "api" en la url`;
+    return `Que pasa manca \n cambia "categories/loquesea" por "api" en la url`;
   }
 }
