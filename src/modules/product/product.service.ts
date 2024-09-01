@@ -1,9 +1,9 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { ProductRepository } from './product.repository';
-import IProductDataTransfer from './product.dto';
 import { Category } from '../../entities/category.entity';
 import { Product } from '../../entities/product.entity';
 import { CategoriesRepository } from '../category/categories.repository';
+import { CreateProductDto } from 'src/dtos/createProduct.dto';
 
 @Injectable()
 export class ProductService {
@@ -12,86 +12,137 @@ export class ProductService {
     private readonly categoryRepository: CategoriesRepository,
   ) {}
 
-  async getProductById(id: string) {
-    const product = await this.productRepository.getProductById(id);
-    if (!product) {
-      throw new HttpException({ status: 404, error: 'Product not found' }, 404);
+  async getProductById(id: string): Promise<Product> {
+    try {
+      const product = await this.productRepository.getProductById(id);
+      if (!product) {
+        throw new HttpException('Product not found', 404);
+      }
+      return product;
+    } catch (error) {
+      throw new HttpException('Failed to retrieve product', 500);
     }
-    return product;
   }
 
-  async getAllProducts(page: number = 1, limit: number = 5) {
-    return await this.productRepository.getProducts(page, limit);
+  async getAllProducts(
+    page: number = 1,
+    limit: number = 5,
+  ): Promise<Product[]> {
+    try {
+      return await this.productRepository.getProducts(page, limit);
+    } catch (error) {
+      throw new HttpException('Failed to retrieve products', 500);
+    }
   }
 
-  async deleteProduct(id: string) {
-    return await this.productRepository.deleteProduct(id);
+  async deleteProduct(id: string): Promise<string> {
+    try {
+      await this.productRepository.deleteProduct(id);
+      return id;
+    } catch (error) {
+      throw new Error('Failed to delete product');
+    }
   }
 
   async createProduct(
-    newProduct: IProductDataTransfer,
+    newProduct: CreateProductDto,
     categories: Category[],
-  ) {
-    const {
-      id,
-      description,
-      imgUrl,
-      name,
-      price,
-      stock,
-      category: categoryName,
-    } = newProduct;
+  ): Promise<string> {
+    try {
+      const {
+        description,
+        imgUrl,
+        name,
+        price,
+        stock,
+        category: categoryName,
+      } = newProduct;
 
-    const category = categories.find((cat) => cat.name === categoryName);
+      let category = categories.find(
+        (cat) => cat.name.toUpperCase() === categoryName.toUpperCase(),
+      );
 
-    const product: Product = {
-      id,
-      description,
-      imgUrl,
-      name,
-      price,
-      stock,
-      category,
-    } as Product;
+      if (!category) {
+        category = await this.categoryRepository.createCategory({
+          name: categoryName,
+        });
+      }
 
-    return await this.productRepository.createProduct(product);
+      const product: Product = {
+        description,
+        imgUrl,
+        name,
+        price,
+        stock,
+        category,
+      } as Product;
+
+      return await this.productRepository.createProduct(product);
+    } catch (error) {
+      throw new HttpException('Failed to create product', 500);
+    }
   }
 
   async createManyProducts(
     categories: Category[],
-    products: IProductDataTransfer[],
-  ) {
-    const productsWithCategory: Product[] = [];
-    products.forEach((product) => {
-      console.log(categories);
-      const { description, imgUrl, name, price, stock, id } = product;
-      const props = { description, imgUrl, name, price, stock, id };
-      const category = categories.find(
-        (category) => category.name === product.category,
+    products: CreateProductDto[],
+  ): Promise<string> {
+    try {
+      const productsWithCategory: Partial<Product>[] = products.map(
+        (product) => {
+          const {
+            description,
+            imgUrl,
+            name,
+            price,
+            stock,
+            category: categoryName,
+          } = product;
+          const category = categories.find((cat) => cat.name === categoryName);
+
+          return { description, imgUrl, name, price, stock, category };
+        },
       );
 
-      productsWithCategory.push({ ...props, category });
-    });
-    return await this.productRepository.createManyProducts(
-      productsWithCategory,
-    );
+      return await this.productRepository.createManyProducts(
+        productsWithCategory,
+      );
+    } catch (error) {
+      throw new HttpException('Failed to create multiple products', 500);
+    }
   }
 
-  async updateProduct(id: string, newProduct: IProductDataTransfer) {
-    const { name, description, price, stock, imgUrl, category } = newProduct;
+  async updateProduct(
+    id: string,
+    newProduct: Partial<CreateProductDto>,
+  ): Promise<Product> {
+    try {
+      const {
+        name,
+        description,
+        price,
+        stock,
+        imgUrl,
+        category: categoryName,
+      } = newProduct;
 
-    const categoryEntity =
-      await this.categoryRepository.getCategoryByName(category);
+      const categoryEntity = categoryName
+        ? await this.categoryRepository.getCategoryByName(categoryName)
+        : undefined;
 
-    const productUpdate: Partial<Product> = {
-      name,
-      description,
-      price,
-      stock,
-      imgUrl,
-      category: categoryEntity,
-    };
+      const productUpdate: Partial<Product> = {
+        name,
+        description,
+        price,
+        stock,
+        imgUrl,
+        category: categoryEntity,
+      };
 
-    return this.productRepository.updateProduct(id, productUpdate);
+      await this.productRepository.updateProduct(id, productUpdate);
+      return this.productRepository.getProductById(id);
+    } catch (error) {
+      throw new HttpException('Failed to update product', 500);
+    }
   }
 }

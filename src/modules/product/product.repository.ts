@@ -9,52 +9,58 @@ export class ProductRepository {
     @InjectRepository(Product) private productRepository: Repository<Product>,
   ) {}
 
-  async getProducts(page: number, limit: number) {
-    const [products] = await this.productRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-    return products;
-  }
-
-  async getProductById(id: string) {
-    const product = await this.productRepository.findOne({ where: { id } });
-    return product;
-  }
-
-  async createProduct(product: Product) {
-    const productCreated = this.productRepository.create(product);
-    await this.productRepository.save(productCreated);
-    return productCreated.id;
-  }
-
-  async createManyProducts(products: Product[]) {
-    for (const product of products) {
-      const productFound = await this.productRepository.findOne({
-        where: { name: product.name },
+  async getProducts(page: number, limit: number): Promise<Product[]> {
+    try {
+      const [products] = await this.productRepository.findAndCount({
+        skip: (page - 1) * limit,
+        take: limit,
       });
-
-      if (!productFound) {
-        const productCreated = this.productRepository.create(product);
-        await this.productRepository.save(productCreated);
-      }
+      return products;
+    } catch (error) {
+      throw new Error('Failed to retrieve products');
     }
-    return 'added products';
   }
 
-  async deleteProduct(id: string) {
-    const product = await this.productRepository.findOne({ where: { id } });
-    if (product) {
-      await this.productRepository.remove(product);
+  async getProductById(id: string): Promise<Product | undefined> {
+    try {
+      return await this.productRepository.findOne({ where: { id } });
+    } catch (error) {
+      throw new Error('Failed to retrieve product');
     }
-    return id;
   }
 
-  async updateProduct(
-    id: string,
-    productData: Partial<Product>,
-  ): Promise<Product> {
-    await this.productRepository.update(id, productData);
-    return this.productRepository.findOne({ where: { id } });
+  async createProduct(product: Product): Promise<string> {
+    try {
+      const productCreated = this.productRepository.create(product);
+      await this.productRepository.save(productCreated);
+      return productCreated.id;
+    } catch (error) {
+      throw new Error('Failed to create product');
+    }
+  }
+
+  async createManyProducts(products: Partial<Product>[]): Promise<string> {
+    try {
+      const result = await this.productRepository.save(products);
+      return result.map((prod) => prod.id).join(',');
+    } catch (error) {
+      throw new Error('Failed to create multiple products');
+    }
+  }
+
+  async deleteProduct(id: string): Promise<void> {
+    try {
+      await this.productRepository.delete(id);
+    } catch (error) {
+      throw new Error('Failed to delete product');
+    }
+  }
+
+  async updateProduct(id: string, product: Partial<Product>): Promise<void> {
+    try {
+      await this.productRepository.update(id, product);
+    } catch (error) {
+      throw new Error('Failed to update product');
+    }
   }
 }

@@ -1,6 +1,7 @@
 import {
   Controller,
   FileTypeValidator,
+  HttpException,
   MaxFileSizeValidator,
   Param,
   ParseFilePipe,
@@ -13,7 +14,7 @@ import {
 import { FileService } from './file.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TokenGuard } from '../auth/auth.tokenGuard';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Files')
 @Controller('files')
@@ -21,10 +22,26 @@ export class FilesController {
   constructor(private readonly fileService: FileService) {}
 
   @Put('/uploadImage/:id')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Archivo de imagen a subir',
+    required: true,
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'La imagen que se va a subir',
+        },
+      },
+    },
+  })
   @UseGuards(TokenGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadImage(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -40,6 +57,12 @@ export class FilesController {
     )
     file: Express.Multer.File,
   ) {
+    if (!file) {
+      throw new HttpException(
+        { status: 400, error: 'image must be defined' },
+        400,
+      );
+    }
     return this.fileService.updateFileService(id, file);
   }
 }

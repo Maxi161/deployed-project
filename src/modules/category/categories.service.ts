@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { CategoriesRepository } from './categories.repository';
-import IProductDataTransfer from '../product/product.dto';
+import { CreateProductDto } from 'src/dtos/createProduct.dto';
 
 @Injectable()
 export class CategoriesService {
   constructor(private readonly categoriesRepository: CategoriesRepository) {}
 
-  async addCategories(products: IProductDataTransfer[]) {
+  async addCategories(products: Partial<CreateProductDto>[]) {
     const allCategories = [];
 
     const categories = products.map((product) => product.category);

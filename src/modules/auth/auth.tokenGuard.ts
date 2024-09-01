@@ -37,7 +37,7 @@ export class TokenGuard implements CanActivate {
 
       return true;
     } catch (err) {
-      throw new HttpException({ status: 500, error: err }, 500);
+      throw err;
     }
   }
 }

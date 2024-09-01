@@ -1,6 +1,6 @@
+import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Category } from '../../entities/category.entity';
-import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
@@ -9,6 +9,12 @@ export class CategoriesRepository {
     @InjectRepository(Category)
     private categoryDBRepository: Repository<Category>,
   ) {}
+
+  async createCategory(category: Partial<Category>): Promise<Category> {
+    const newCategory = this.categoryDBRepository.create(category);
+    return await this.categoryDBRepository.save(newCategory);
+  }
+
   async addCategories(categories: Category[]): Promise<Category[]> {
     const savedCategories: Category[] = [];
 
@@ -22,6 +28,7 @@ export class CategoriesRepository {
         savedCategories.push(await this.categoryDBRepository.save(newCategory));
       }
     }
+
     return savedCategories;
   }
 
@@ -29,7 +36,7 @@ export class CategoriesRepository {
     return this.categoryDBRepository.findOne({ where: { name } });
   }
 
-  async getCategories() {
-    return await this.categoryDBRepository.find();
+  async getCategories(): Promise<Category[]> {
+    return this.categoryDBRepository.find();
   }
 }

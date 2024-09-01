@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Order } from '../../entities/order.entity';
 import { User } from '../../entities/user.entity';
 import { Repository } from 'typeorm';
 
@@ -8,42 +7,65 @@ import { Repository } from 'typeorm';
 export class UserRepository {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
-    @InjectRepository(Order) private orderRepository: Repository<Order>,
   ) {}
 
-  async getUsers(): Promise<User[]> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const users = await this.userRepository.find();
-    return users;
+  async getUsers(page: number, limit: number): Promise<User[]> {
+    try {
+      const [users] = await this.userRepository.findAndCount({
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+      return users;
+    } catch (error) {
+      throw new Error('Failed to retrieve users');
+    }
   }
 
-  async getUsersById(id: string) {
-    const user: User = await this.userRepository.findOne({ where: { id } });
-    const orders: Order[] = await this.orderRepository.find({
-      where: { user: user },
-    });
-
-    return { user, orders };
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    try {
+      const user: User = await this.userRepository.findOne({
+        where: { email },
+      });
+      return user;
+    } catch (err) {
+      throw new Error('Error getting user by email');
+    }
   }
 
-  async getUserByEmail(email: string) {
-    const user = await this.userRepository.findOne({ where: { email } });
-    return user;
+  async getUserById(id: string): Promise<User | undefined> {
+    try {
+      return await this.userRepository.findOne({
+        where: { id },
+        relations: ['orders'],
+      });
+    } catch (error) {
+      throw new Error('Failed to retrieve user');
+    }
   }
 
-  async createUser(newUser: User) {
-    const user = this.userRepository.create(newUser);
-    await this.userRepository.save(user);
-    return user;
+  async createUser(user: User) {
+    try {
+      const newUser = this.userRepository.create(user);
+      await this.userRepository.save(newUser);
+      return newUser;
+    } catch (error) {
+      throw new Error('Failed to create user');
+    }
   }
 
-  async updateUser(id: string, newData: User) {
-    await this.userRepository.update(id, newData);
-    return await this.getUsersById(id);
+  async deleteUser(id: string): Promise<void> {
+    try {
+      await this.userRepository.delete(id);
+    } catch (error) {
+      throw new Error('Failed to delete user');
+    }
   }
 
-  async deleteUser(id: string) {
-    await this.userRepository.delete(id);
-    return { deleted: true };
+  async updateUser(id: string, user: Partial<User>): Promise<void> {
+    try {
+      await this.userRepository.update(id, user);
+    } catch (error) {
+      throw new Error('Failed to update user');
+    }
   }
 }

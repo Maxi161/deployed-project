@@ -27,7 +27,7 @@ export class Order {
     description: 'The user who placed the order.',
     type: () => User,
   })
-  @ManyToOne(() => User, (user) => user.order_id, { nullable: false })
+  @ManyToOne(() => User, (user) => user.orders, { nullable: false })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
@@ -44,7 +44,6 @@ export class Order {
   })
   @OneToOne(() => OrderDetails, (orderDetails) => orderDetails.order, {
     cascade: true,
-    nullable: false,
   })
   @JoinColumn({ name: 'order_id' })
   orderDetails?: OrderDetails;

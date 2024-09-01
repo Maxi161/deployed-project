@@ -15,12 +15,17 @@ const dataAuth = (req: Request) => {
     return false;
   }
 
-  const [email, password] = credentials.split(':');
+  // Decodificar credentials desde Base64
+  const decodedCredentials = Buffer.from(credentials, 'base64').toString(
+    'utf-8',
+  );
+  const [email, password] = decodedCredentials.split(':');
 
   if (!email || !password) {
     return false;
   }
 
+  // Aquí podrías agregar más lógica de validación si es necesario
   return true;
 };
 
@@ -29,7 +34,7 @@ export class DataGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const response = context.switchToHttp().getRequest();
-    return dataAuth(response);
+    const request = context.switchToHttp().getRequest();
+    return dataAuth(request);
   }
 }

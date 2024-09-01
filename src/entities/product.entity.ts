@@ -10,8 +10,10 @@ import { OrderDetails } from './orderDetails.entity';
 import { v4 as uuid } from 'uuid';
 import { ApiProperty } from '@nestjs/swagger';
 
-const imgDefault =
-  'https://res.cloudinary.com/dnhuenhta/image/upload/v1723774544/uaawv9nbh4el9xprom5z.png';
+// const imgDefault =
+//   'https://res.cloudinary.com/dnhuenhta/image/upload/v1723774544/uaawv9nbh4el9xprom5z.png';
+
+const imgDefault = 'img default';
 
 @Entity({
   name: 'products',

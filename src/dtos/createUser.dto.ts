@@ -97,3 +97,13 @@ export class LoginUserDto extends PickType(CreateUserDto, [
   'email',
   'password',
 ]) {}
+
+export class UpdateUserDto extends PickType(CreateUserDto, [
+  'name',
+  'email',
+  'password',
+  'address',
+  'city',
+  'country',
+  'phone',
+]) {}

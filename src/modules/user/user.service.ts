@@ -1,36 +1,43 @@
-import { HttpException, Injectable } from '@nestjs/common';
-import { UserRepository } from './user.repository';
+import { Injectable, HttpException } from '@nestjs/common';
+import { UserRepository } from './user.repository'; // Ruta actualizada
 import { User } from '../../entities/user.entity';
-import { CreateUserDto } from '../../dtos/createUser.dto';
+import { CreateUserDto } from 'src/dtos/createUser.dto';
 import * as bcrypt from 'bcrypt';
+import { OrderRepository } from '../order/order.repository';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly orderRespository: OrderRepository,
+  ) {}
 
-  async getAllUsers(page: number, limit: number) {
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
+  async getAllUsers(page: number = 1, limit: number = 5) {
+    try {
+      const users = await this.userRepository.getUsers(page, limit);
 
-    const users = await this.userRepository.getUsers();
-
-    const paginatedUsers = users.slice(startIndex, endIndex);
-
-    return paginatedUsers.map((user) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, role, ...userWithoutPassword } = user;
-      return userWithoutPassword;
-    });
+      return users.map((user) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password, role, ...userWithoutPassword } = user;
+        const userData = userWithoutPassword;
+        return userData;
+      });
+    } catch (error) {
+      throw new Error('Failed to retrieve users');
+    }
   }
 
-  async getUserById(id: string) {
-    const { user, orders } = await this.userRepository.getUsersById(id);
-    if (user) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...userWithoutPassword } = user;
-      return { userWithoutPassword, orders };
+  async getUserById(id: string): Promise<User> {
+    try {
+      const user = await this.userRepository.getUserById(id);
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+      return user;
+    } catch (error) {
+      throw new HttpException(error.message, 404);
     }
-    return new HttpException({ status: 404, error: 'User not found.' }, 404);
   }
 
   async createUser(userData: CreateUserDto) {
@@ -63,15 +70,28 @@ export class UserService {
 
     const newUser = await this.userRepository.createUser(user as User);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = newUser;
-    return userWithoutPassword;
+    const { password, role, ...userWithoutPassword } = newUser;
+    return { password, role, userWithoutPassword };
   }
 
-  async updateUser(id: string, newData: Partial<User>) {
-    return await this.userRepository.updateUser(id, newData as User);
+  async deleteUser(id: string): Promise<void> {
+    try {
+      await this.userRepository.deleteUser(id);
+    } catch (error) {
+      throw new HttpException('Failed to delete user', 500);
+    }
   }
 
-  async deleteUser(id: string) {
-    return await this.userRepository.deleteUser(id);
+  async updateUser(id: string, updatedUser: Partial<User>): Promise<User> {
+    try {
+      await this.userRepository.updateUser(id, updatedUser);
+      const updated = await this.userRepository.getUserById(id);
+      if (!updated) {
+        throw new Error('User not found');
+      }
+      return updated;
+    } catch (error) {
+      throw new HttpException(error.message, 404);
+    }
   }
 }

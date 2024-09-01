@@ -10,10 +10,16 @@ import typeormConfig from '../../config/ORMConfig';
       load: [typeormConfig],
     }),
     TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) =>
-        configService.get('typeorm'),
+      useFactory: async (configService: ConfigService) => {
+        const typeOrmConfig = configService.get('typeorm');
+        if (!typeOrmConfig) {
+          throw new Error('TypeORM configuration is missing');
+        }
+        return typeOrmConfig;
+      },
     }),
   ],
 })
-export class DataBase {}
+export class DatabaseModule {}

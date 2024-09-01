@@ -77,5 +77,5 @@ export class User {
     type: () => [Order],
   })
   @OneToMany(() => Order, (order) => order.user)
-  order_id: Order[];
+  orders: Order[];
 }

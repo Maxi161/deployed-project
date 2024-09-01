@@ -3,9 +3,7 @@ import { Product } from './product.entity';
 import { v4 as uuid } from 'uuid';
 import { ApiProperty } from '@nestjs/swagger';
 
-@Entity({
-  name: 'categories',
-})
+@Entity({ name: 'categories' })
 export class Category {
   @ApiProperty({
     description:
@@ -19,7 +17,7 @@ export class Category {
     description: 'Name of the category, which is required and must be unique.',
     example: 'Electronics',
   })
-  @Column({ length: 50, nullable: false })
+  @Column({ length: 50, nullable: false, unique: true })
   name: string;
 
   @ApiProperty({

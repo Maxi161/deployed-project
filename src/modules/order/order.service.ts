@@ -1,8 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { OrderRepository } from './order.repository';
 import { ProductRepository } from '../../modules/product/product.repository';
-import IOrderDataTransfer from './order.dto';
+import {
+  CreateOrderDto,
+  OrderDetailsDto,
+  OrderResponseDto,
+} from '../../dtos/order.dto';
 import { Product } from '../../entities/product.entity';
+import { Order } from '../../entities/order.entity';
 
 @Injectable()
 export class OrderService {
@@ -12,22 +21,29 @@ export class OrderService {
   ) {}
 
   async getOrders() {
-    return this.orderRepository.getOrder();
+    return this.orderRepository.getOrders();
   }
 
-  async addOrder(dataOrder: IOrderDataTransfer) {
+  async getOrderById(id: string): Promise<Order> {
+    const order = await this.orderRepository.getOrderById(id);
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${id} not found`);
+    }
+    return order;
+  }
+
+  async addOrder(dataOrder: CreateOrderDto) {
     const { userId, products, time } = dataOrder;
     let totalPrice = 0;
 
     const productEntities: Product[] = [];
 
-    for (const product of products) {
-      const productEntity = await this.productRepository.getProductById(
-        product.id,
-      );
+    for (const idProduct of products) {
+      const productEntity =
+        await this.productRepository.getProductById(idProduct);
       if (!productEntity || productEntity.stock <= 0) {
-        throw new Error(
-          `Product with id ${product.id} is out of stock or does not exist`,
+        throw new BadRequestException(
+          `Product with ID ${idProduct} is out of stock or does not exist`,
         );
       }
       productEntity.stock -= 1;
@@ -35,11 +51,24 @@ export class OrderService {
       productEntities.push(productEntity);
     }
 
-    return this.orderRepository.addOrder(
+    const order = await this.orderRepository.addOrder(
       userId,
       productEntities,
       time,
       totalPrice,
     );
+
+    const orderDetails: OrderDetailsDto = {
+      id: order.orderDetails.id,
+      products: order.orderDetails.products,
+      price: order.orderDetails.price,
+    };
+
+    const responseOrder: OrderResponseDto = {
+      id: order.id,
+      date: order.date,
+      orderDetails: orderDetails,
+    };
+    return responseOrder;
   }
 }

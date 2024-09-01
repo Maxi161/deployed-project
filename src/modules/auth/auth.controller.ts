@@ -29,25 +29,26 @@ export class AuthController {
   @Post('/signup')
   @UsePipes(new ValidationPipe())
   @HttpCode(201)
-  signupUser(
+  async signupUser(
     @Body()
     userData: CreateUserDto,
   ) {
     if (userData.password !== userData.confirmPassword) {
       throw new HttpException(
-        { status: 401, error: 'invalid credentials' },
+        { status: 401, error: 'Invalid credentials' },
         401,
       );
     }
-    return this.userService.createUser(userData);
+    const { userWithoutPassword } = await this.userService.createUser(userData);
+    return userWithoutPassword;
   }
 
   @Post('/signin')
-  signinUser(@Body() userData: LoginUserDto) {
-    const res = this.authService.loginAuth(userData);
+  async signinUser(@Body() userData: LoginUserDto) {
+    const res = await this.authService.loginAuth(userData);
     if (!res) {
       throw new HttpException(
-        { status: 401, error: 'invalid credentials' },
+        { status: 401, error: 'Invalid credentials' },
         401,
       );
     }
