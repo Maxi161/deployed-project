@@ -11,9 +11,4 @@ export class CategoriesController {
   async getCategories() {
     return this.categoriesService.getCategories();
   }
-
-  @Get(':id')
-  async prueba() {
-    return `Que pasa manca \n cambia "categories/loquesea" por "api" en la url`;
-  }
 }

@@ -3,14 +3,10 @@ import { UserRepository } from './user.repository'; // Ruta actualizada
 import { User } from '../../entities/user.entity';
 import { CreateUserDto } from 'src/dtos/createUser.dto';
 import * as bcrypt from 'bcrypt';
-import { OrderRepository } from '../order/order.repository';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private readonly userRepository: UserRepository,
-    private readonly orderRespository: OrderRepository,
-  ) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   async getAllUsers(page: number = 1, limit: number = 5) {
     try {

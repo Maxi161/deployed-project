@@ -109,7 +109,7 @@ export class ProductController {
   }
 
   @Put(':id')
-  @Roles(Role.User)
+  @Roles(Role.Admin)
   @ApiBearerAuth()
   @ApiBody({ type: CreateProductDto })
   @UseGuards(TokenGuard, RoleGuard)

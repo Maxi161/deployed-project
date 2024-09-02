@@ -9,7 +9,7 @@ import { OrderModule } from './modules/order/order.module';
 import { FilesModule } from './modules/files/file.module';
 import { JwtModule } from '@nestjs/jwt';
 import 'dotenv/config';
-import { DataSeeder } from './modules/data/data.module';
+import { DataSeederModule } from './modules/data/data.module';
 import { DataSeederService } from './modules/data/seeder.data.service';
 
 @Module({
@@ -21,7 +21,7 @@ import { DataSeederService } from './modules/data/seeder.data.service';
     CategoriesModule,
     OrderModule,
     FilesModule,
-    DataSeeder,
+    DataSeederModule,
     JwtModule.register({
       global: true,
       signOptions: { expiresIn: '1h' },

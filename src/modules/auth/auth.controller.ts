@@ -4,14 +4,21 @@ import {
   Get,
   HttpCode,
   HttpException,
+  Param,
+  ParseUUIDPipe,
   Post,
+  Put,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from '../../modules/auth/auth.service';
-import { CreateUserDto, LoginUserDto } from '../../dtos/createUser.dto';
+import {
+  CreateUserDto,
+  LoginUserDto,
+  MakeAdminDto,
+} from '../../dtos/createUser.dto';
 import { UserService } from '../user/user.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -44,6 +51,7 @@ export class AuthController {
   }
 
   @Post('/signin')
+  @UsePipes(new ValidationPipe())
   async signinUser(@Body() userData: LoginUserDto) {
     const res = await this.authService.loginAuth(userData);
     if (!res) {
@@ -52,6 +60,21 @@ export class AuthController {
         401,
       );
     }
+    return res;
+  }
+
+  @Put('/admin/:id')
+  @ApiBody({
+    description: 'password to make a admin',
+    required: true,
+    type: MakeAdminDto,
+  })
+  async makeAdmin(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() data: MakeAdminDto,
+  ) {
+    const { password } = data;
+    const res = await this.authService.makeAdmin(id, password);
     return res;
   }
 }

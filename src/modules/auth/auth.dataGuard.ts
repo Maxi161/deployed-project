@@ -15,7 +15,6 @@ const dataAuth = (req: Request) => {
     return false;
   }
 
-  // Decodificar credentials desde Base64
   const decodedCredentials = Buffer.from(credentials, 'base64').toString(
     'utf-8',
   );
@@ -25,7 +24,6 @@ const dataAuth = (req: Request) => {
     return false;
   }
 
-  // Aquí podrías agregar más lógica de validación si es necesario
   return true;
 };
 

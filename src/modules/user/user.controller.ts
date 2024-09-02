@@ -15,6 +15,9 @@ import { UserService } from './user.service';
 import { UpdateUserDto } from 'src/dtos/createUser.dto';
 import { ApiTags, ApiBearerAuth, ApiBody, ApiQuery } from '@nestjs/swagger';
 import { TokenGuard } from '../auth/auth.tokenGuard';
+import { Role } from 'src/decorators/roles.enum';
+import { Roles } from 'src/decorators/roles.decorator';
+import { RoleGuard } from '../auth/auth.roleGuard';
 
 @ApiTags('Users')
 @Controller('user')
@@ -23,18 +26,17 @@ export class UserController {
 
   @Get()
   @ApiBearerAuth()
-  @UseGuards(TokenGuard)
+  @Roles(Role.Admin)
+  @UseGuards(TokenGuard, RoleGuard)
   @ApiQuery({
     name: 'page',
     required: false,
     description: 'Page number',
-    example: 1,
   })
   @ApiQuery({
     name: 'limit',
     required: false,
     description: 'Number of items per page',
-    example: 5,
   })
   @HttpCode(200)
   async getAllUsers(
@@ -42,11 +44,11 @@ export class UserController {
     @Query('limit') limit: number = 5,
   ) {
     try {
-      const usersWithoutPassword = await this.userService.getAllUsers(
+      const user = await this.userService.getAllUsers(
         Number(page),
         Number(limit),
       );
-      return usersWithoutPassword;
+      return user;
     } catch (error) {
       throw new HttpException(error, 500);
     }

@@ -107,3 +107,5 @@ export class UpdateUserDto extends PickType(CreateUserDto, [
   'country',
   'phone',
 ]) {}
+
+export class MakeAdminDto extends PickType(CreateUserDto, ['password']) {}

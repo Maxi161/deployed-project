@@ -9,4 +9,4 @@ import { CategoriesModule } from '../category/categories.module';
   imports: [ProductModule, CategoriesModule],
   providers: [DataSeederService, ProductService, CategoriesService],
 })
-export class DataSeeder {}
+export class DataSeederModule {}
