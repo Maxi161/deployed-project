@@ -19,7 +19,7 @@ const typeOrmConfig = {
   entities: [User, Product, Order, OrderDetails, Category],
   synchronize: true,
   logging: ['query', 'error'],
-  dropSchema: true,
+  dropSchema: false,
   // entities: ['dist/**/*.entity{.ts,.js}'],
   // migrations: ['dist/migrations/*{.ts,.js}'],
 };
