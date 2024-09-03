@@ -7,6 +7,7 @@ const swaggerConfig = new DocumentBuilder()
   )
   .setVersion('1.0')
   .addBearerAuth()
+  .addBasicAuth()
   .build();
 
 export default swaggerConfig;

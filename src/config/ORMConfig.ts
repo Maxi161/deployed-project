@@ -20,8 +20,7 @@ const typeOrmConfig = {
   synchronize: true,
   logging: ['query', 'error'],
   dropSchema: false,
-  // entities: ['dist/**/*.entity{.ts,.js}'],
-  // migrations: ['dist/migrations/*{.ts,.js}'],
+  migrations: ['dist/migrations/*{.ts,.js}'],
 };
 
 export default registerAs('typeorm', () => typeOrmConfig);
